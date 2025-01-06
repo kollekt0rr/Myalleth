@@ -1,10 +1,14 @@
-import disnake
-from disnake.ext import commands
-from random import randint
+import logging
 from os import getenv
+from random import randint
+
+import disnake
+from disnake import ApplicationCommandInteraction
+from disnake.ext import commands
+from disnake.ext.commands import CommandSyncFlags
 from dotenv import load_dotenv
-#from cogs import *
-import d20
+
+cogs = ['cogs']
 
 load_dotenv()
 DESTINATION = int(getenv('CHANNEL_ID_NUMBER'))
@@ -17,23 +21,19 @@ async def on_ready():
     welcome = await bot.fetch_channel(DESTINATION)
     await welcome.send('Mystra returns from the weave!')
 
+for cog in cogs:
+    bot.load_extension(cog)
+
+@bot.slash_command(name = 'mult')
+async def multiply(inter, num):
+    await inter.response.send_message(num * 2)
+
 @bot.command(aliases = ['shutdown', 'kick', 'close', 'quit'])
 async def banish(ctx):
+    for cog in cogs:
+        bot.unload_extension(cog)
     await ctx.send(f'{ctx.author.display_name} has banished Mystra to the weave')
     await bot.close()
-
-@bot.command()
-async def loot(ctx, creatures: str, total: int):
-    
-    rolls = []
-    while len(rolls) != total:
-       roll =  d20.roll("1d100")
-       rolls.append(roll.total)
-    
-    for roll in rolls:
-        if roll <= 50:
-            
-    await ctx.send(rolls)
 
 bot.run(getenv('DISCORD_TOKEN_STRING'))
 
