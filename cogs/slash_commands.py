@@ -15,12 +15,43 @@ class SlashCommands(commands.Cog):
         
         load_dotenv()
         
-        def roll_for_n_creatures(total_creatures):
+        def roll_for_n_creatures(creature_cr, total_creatures):
+            dice = '1d{die_type}'
+            dice.format(die_type = creature_cr)
+
             rolls = []
             while len(rolls) != int(total_creatures):
-                roll = d20.roll("1d100")
+                roll = d20.roll(dice.format(die_type = creature_cr))
                 rolls.append(roll.total)
             return rolls
+        
+        def loot_from_rolls(creature_cr, loot_table):
+
+            rolls = roll_for_n_creatures(creature_cr, total_creatures)
+            s = f"SELECT * FROM {loot_table} WHERE roll = :roll"
+
+            loot = []
+            for roll in rolls:
+                c.execute(s, (roll, ))
+                loot.append(list(c.fetchone())) 
+           
+            for i in range(len(loot)):
+                del loot[i][0]
+            
+            for roll in loot:
+                loot_string, loot_type = zip(*loot)
+            
+            loot_r = []
+            for r in loot_string:
+                rr = d20.roll(str(r)) 
+                loot_r.append(str(rr.total))
+            
+            results = [lr + lt for lr, lt in zip(loot_r, loot_type)] 
+            
+            
+            Mystra_String = 'You have looted: ' + ', '.join(results) + ' from ' + total_creatures + ' ' + creature_name+'!'
+            
+            return Mystra_String
 
         creature_name = str(creature_name).capitalize()
 
@@ -31,13 +62,20 @@ class SlashCommands(commands.Cog):
         creature_cr = float(creature_cr[0])
         
         if creature_cr <= 4:
-            rolls = roll_for_n_creatures(total_creatures)
+
+            loot = loot_from_rolls(5, 'loot_tier_1')
+
         elif creature_cr <= 10:
-            rolls = roll_for_n_creatures(total_creatures)
+
+            loot = loot_from_rolls(5, 'loot_tier_2')
+            
         elif creature_cr <=16:
-            rolls = roll_for_n_creatures(total_creatures)
-        else:
-            rolls = roll_for_n_creatures(total_creatures)
+            
+            loot = loot_from_rolls(4, 'loot_tier_3')
         
-        await inter.response.send_message(rolls)
+        else:
+
+            loot = loot_from_rolls(3, 'loot_tier_4')
+        
+        await inter.response.send_message(loot)
 

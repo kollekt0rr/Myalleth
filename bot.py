@@ -24,10 +24,6 @@ async def on_ready():
 for cog in cogs:
     bot.load_extension(cog)
 
-@bot.slash_command(name = 'mult')
-async def multiply(inter, num):
-    await inter.response.send_message(num * 2)
-
 @bot.command(aliases = ['shutdown', 'kick', 'close', 'quit'])
 async def banish(ctx):
     for cog in cogs:
