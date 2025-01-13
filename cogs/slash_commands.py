@@ -15,19 +15,17 @@ class SlashCommands(commands.Cog):
         
         load_dotenv()
         
-        def roll_for_n_creatures(creature_cr, total_creatures):
-            dice = '1d{die_type}'
-            dice.format(die_type = creature_cr)
+        def roll_for_n_creatures(total_creatures):
 
             rolls = []
             while len(rolls) != int(total_creatures):
-                roll = d20.roll(dice.format(die_type = creature_cr))
+                roll = d20.roll('1d100')
                 rolls.append(roll.total)
             return rolls
         
-        def loot_from_rolls(creature_cr, loot_table):
+        def loot_from_rolls(loot_table):
 
-            rolls = roll_for_n_creatures(creature_cr, total_creatures)
+            rolls = roll_for_n_creatures(total_creatures)
             s = f"SELECT * FROM {loot_table} WHERE roll = :roll"
 
             loot = []
@@ -42,18 +40,52 @@ class SlashCommands(commands.Cog):
                 loot_string, loot_type = zip(*loot)
             
             loot_r = []
-            for r in loot_string:
-                rr = d20.roll(str(r)) 
-                loot_r.append(str(rr.total))
+            if loot_table == 'loot_tier_1':
+                for r in loot_string:
+                    rr = d20.roll(str(r)) 
+                    loot_r.append(str(rr.total))
+                results = [lr + lt for lr, lt in zip(loot_r, loot_type)] 
+           
+            else:
+                long_loot = []
+                for r in loot_string:
+                    r = r.split('+')
+                    long_loot.extend(r)
+                loot_one = long_loot[::2]
+                loot_two = long_loot[1::2]
             
-            results = [lr + lt for lr, lt in zip(loot_r, loot_type)] 
+                l1 = []
+                for l in loot_one:
+                    lr = d20.roll(str(l))
+                    l1.append(str(lr.total))
+
+                l2 = []
+                for l in loot_two:
+                    if l != ' ':
+                        lr = d20.roll(str(l))
+                        l2.append(str(lr.total))
+                    else:
+                        l2.append('')
+
+                long_type = []
+                for t in loot_type:
+                    t = t.split('+')
+                    long_type.extend(t)
+
+                    type_1 = long_type[::2]
+                    type_2 = long_type[1::2]
+
+                pair_1 = [i + j for i, j in zip(l1, type_1)]
+                pair_2 = [i + j for i, j in zip(l2, type_2)]
+                results =[i +', '+ j for i, j in zip(pair_1,pair_2)]
             
+            Mystra_String = 'You have looted: ' + ', '.join(results).replace(' ,', ' ') + ' from ' + total_creatures + ' ' + creature_name.capitalize()+'!'
             
-            Mystra_String = 'You have looted: ' + ', '.join(results) + ' from ' + total_creatures + ' ' + creature_name+'!'
-            
+            connc.close()
+
             return Mystra_String
 
-        creature_name = str(creature_name).capitalize()
+        creature_name = str(creature_name).lower()
 
         connc = sqlite3.connect(str(getenv('db')))
         c = connc.cursor()
@@ -63,19 +95,19 @@ class SlashCommands(commands.Cog):
         
         if creature_cr <= 4:
 
-            loot = loot_from_rolls(5, 'loot_tier_1')
+            loot = loot_from_rolls('loot_tier_1')
 
         elif creature_cr <= 10:
 
-            loot = loot_from_rolls(5, 'loot_tier_2')
+            loot = loot_from_rolls('loot_tier_2')
             
         elif creature_cr <=16:
             
-            loot = loot_from_rolls(4, 'loot_tier_3')
+            loot = loot_from_rolls('loot_tier_3')
         
         else:
 
-            loot = loot_from_rolls(3, 'loot_tier_4')
+            loot = loot_from_rolls('loot_tier_4')
         
         await inter.response.send_message(loot)
 
