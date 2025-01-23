@@ -117,4 +117,4 @@ class SlashCommands(commands.Cog):
 
         rule = 'This will return a rule at some point.'
 
-        await inter.response.send_messge(rule)
+        await inter.response.send_message(rule)

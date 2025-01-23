@@ -24,7 +24,7 @@ async def on_ready():
 for cog in cogs:
     bot.load_extension(cog)
 
-@bot.command(aliases = ['shutdown', 'kick', 'close', 'quit'])
+@bot.slash_command(aliases = ['shutdown', 'kick', 'close', 'quit'])
 async def banish(ctx):
     for cog in cogs:
         bot.unload_extension(cog)
