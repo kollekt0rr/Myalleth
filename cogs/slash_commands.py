@@ -1,31 +1,25 @@
 import disnake
 from disnake.ext import commands
 import sqlite3
-import d20
 from os import getenv
 from dotenv import load_dotenv
+from random import randint
 
 class SlashCommands(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot 
+        
+        load_dotenv()
 
     @commands.slash_command(name = 'lootcreature', description = 'Returns loot from monster loot tables for each monster killed')
     async def lootcreature(self, inter, creature_name, total_creatures):
-        
-        load_dotenv()
-        
-        def roll_for_n_creatures(total_creatures):
+   
 
-            rolls = []
-            while len(rolls) != int(total_creatures):
-                roll = d20.roll('1d100')
-                rolls.append(roll.total)
-            return rolls
-        
         def loot_from_rolls(loot_table):
 
-            rolls = roll_for_n_creatures(total_creatures)
+            rolls = [randint(1, 100) for x in range(int(total_creatures))]
+            
             s = f"SELECT * FROM {loot_table} WHERE roll = :roll"
 
             loot = []
@@ -79,11 +73,11 @@ class SlashCommands(commands.Cog):
                 pair_2 = [i + j for i, j in zip(l2, type_2)]
                 results =[i +', '+ j for i, j in zip(pair_1,pair_2)]
             
-            Mystra_String = 'You have looted: ' + ', '.join(results).replace(' ,', ' ') + ' from ' + total_creatures + ' ' + creature_name.capitalize()+'!'
+            Myalleth_String = 'You have looted: ' + ', '.join(results).replace(' ,', ' ') + ' from ' + total_creatures + ' ' + creature_name.capitalize()+'!'
             
             connc.close()
 
-            return Mystra_String
+            return Myalleth_String
 
         creature_name = str(creature_name).lower()
 
@@ -111,3 +105,16 @@ class SlashCommands(commands.Cog):
         
         await inter.response.send_message(loot)
 
+    @commands.slash_command(name = 'lootlair', description = 'Returns loot from monster lair loot tables for monster type specified')
+    async def lootlair(self, inter, creature_name):
+        
+        loot = 'Howdy lair looter'
+
+        await inter.response.send_message(loot)
+
+    @commands.slash_command(name = 'rules', description = 'Returns rulings as stated in rulebooks')
+    async def rules(self, inter, requested_rule):
+
+        rule = 'This will return a rule at some point.'
+
+        await inter.response.send_messge(rule)
