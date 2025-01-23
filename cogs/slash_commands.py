@@ -1,6 +1,7 @@
 import disnake
 from disnake.ext import commands
 import sqlite3
+import d20
 from os import getenv
 from dotenv import load_dotenv
 from random import randint
