@@ -6,21 +6,36 @@ from os import getenv
 from dotenv import load_dotenv
 from random import randint
 
-class SlashCommands(commands.Cog):
+class Venture(commands.Cog):
+
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.slash_command(description = 'Checks if user has existing character in game system.')
+    async def join(self, inter):
+        
+        await inter.response.send_message(f'{inter.author.id} is playing the game as CHARACTER')
+        # check here to see if user has made character yet.
+        
+    #@commands.slash_command(        
+    #async def 
+
+class Looting(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot 
         
         load_dotenv()
-
+    
     @commands.slash_command(name = 'lootcreature', description = 'Returns loot from monster loot tables for each monster killed')
-    async def lootcreature(self, inter, creature_name, total_creatures):
+    async def lootcreature(self, inter, creature_name: str, total_creatures: int = commands.Param(gt=0)):
    
-
         def loot_from_rolls(loot_table):
 
-            rolls = [randint(1, 100) for x in range(int(total_creatures))]
+            rolls = [randint(1, 100) for x in range(total_creatures)]
             
+            #This is bad, do not do this if using in environment where you don't trust users 
+            #This can lead to SQL injection if you take this code please rewrite this portion :D
             s = f"SELECT * FROM {loot_table} WHERE roll = :roll"
 
             loot = []
@@ -74,16 +89,16 @@ class SlashCommands(commands.Cog):
                 pair_2 = [i + j for i, j in zip(l2, type_2)]
                 results =[i +', '+ j for i, j in zip(pair_1,pair_2)]
             
-            Myalleth_String = 'You have looted: ' + ', '.join(results).replace(' ,', ' ') + ' from ' + total_creatures + ' ' + creature_name.capitalize()+'!'
+            Myalleth_String = inter.author.display_name + ' has looted: ' + ', '.join(results).replace(' ,', ' ') + ' from ' + str(total_creatures) + ' ' + creature_name.capitalize()+'!'
             
-            connc.close()
+            con.close()
 
             return Myalleth_String
 
         creature_name = str(creature_name).lower()
 
-        connc = sqlite3.connect(str(getenv('db')))
-        c = connc.cursor()
+        con = sqlite3.connect(str(getenv('DB')))
+        c = con.cursor()
         c.execute('SELECT creature_cr FROM creatures WHERE creature_name = :creature_name', {'creature_name': creature_name})
         creature_cr = c.fetchone()
         creature_cr = float(creature_cr[0])
@@ -119,3 +134,15 @@ class SlashCommands(commands.Cog):
         rule = 'This will return a rule at some point.'
 
         await inter.response.send_message(rule)
+
+class Games(commands.Cog):
+
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.slash_command(name = '3da', description = 'Initiate a game of Three-Dragon Ante')
+    async def TDA(self, inter):
+        
+        result = 'Gambling Time!'
+        
+        await inter.response.send_message(result)

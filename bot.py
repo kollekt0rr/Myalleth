@@ -13,7 +13,9 @@ cogs = ['cogs']
 load_dotenv()
 DESTINATION = int(getenv('CHANNEL_ID_NUMBER'))
 
-bot = commands.Bot(command_prefix = '$', intents = disnake.Intents.all())
+command_sync_flags = commands.CommandSyncFlags.default()
+
+bot = commands.Bot(command_prefix = '$', intents = disnake.Intents.all(), command_sync_flags = command_sync_flags)
 
 @bot.event
 async def on_ready():
@@ -24,7 +26,7 @@ async def on_ready():
 for cog in cogs:
     bot.load_extension(cog)
 
-@bot.slash_command(aliases = ['shutdown', 'kick', 'close', 'quit'])
+@bot.slash_command()
 async def banish(ctx):
     for cog in cogs:
         bot.unload_extension(cog)
